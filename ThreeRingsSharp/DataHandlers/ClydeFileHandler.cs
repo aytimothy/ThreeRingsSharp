@@ -20,12 +20,11 @@ namespace ThreeRingsSharp.DataHandlers {
 	/// A class designed to handle files exported by the Clyde library.
 	/// </summary>
 	public class ClydeFileHandler {
-
-		/// <summary>
+        /// <summary>
 		/// An object cache of files that have already been read. Should drastically speed up models with a lot of references.
 		/// </summary>
-		private static readonly Dictionary<string, object> ClydeObjectCache = new Dictionary<string, object>();
-		private static readonly Dictionary<string, (string, string, string)> ModelInfoCache = new Dictionary<string, (string, string, string)>();
+		public static readonly Dictionary<string, object> ClydeObjectCache = new Dictionary<string, object>();
+		public static readonly Dictionary<string, (string, string, string)> ModelInfoCache = new Dictionary<string, (string, string, string)>();
 
 		/// <summary>
 		/// Depending on the value of the input <see cref="ClydeFormat"/>, this will return the appropriate <see cref="Importer"/> to read the given <paramref name="clydeFile"/>. Remember to close the <see cref="Importer"/>!<para/>
@@ -68,6 +67,8 @@ namespace ThreeRingsSharp.DataHandlers {
 			return GetAppropriateImporter(clydeFile, format);
 		}
 
+        public static string lastClydeFileHandled;
+
 		/// <summary>
 		/// Takes in a <see cref="FileInfo"/> representing a file that was created with the Clyde library.<para/>
 		/// This will throw a <see cref="ClydeDataReadException"/> if anything goes wrong during reading.
@@ -102,6 +103,7 @@ namespace ThreeRingsSharp.DataHandlers {
 				XanLogger.WriteLine("SPECIAL: While version 2.0.0 has added the ability to convert knights, the process for this is a little complex! If you need help, please watch this tutorial video: https://youtu.be/RWhRABs4ds4", color: Color.Red);
 			}
 
+            lastClydeFileHandled = clydeFile.FullName;
 			if (!ClydeObjectCache.ContainsKey(clydeFile.FullName)) {
 				XanLogger.WriteLine($"Loading [{clydeFile.FullName}] because it hasn't been initialized before...", XanLogger.DEBUG);
 				SKAnimatorToolsProxy.IncrementEnd(2);

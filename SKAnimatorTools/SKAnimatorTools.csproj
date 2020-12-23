@@ -177,6 +177,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="aytimothy\ExportedScene.cs" />
     <Compile Include="Component\ColoredProgressBar.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -297,5 +298,6 @@
   <ItemGroup>
     <None Include="Resources\help.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -12,6 +12,11 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
+using com.threerings.math;
+using com.threerings.tudey.config;
+using com.threerings.tudey.data;
+using Newtonsoft.Json;
+using SKAnimatorTools.aytimothy;
 using ThreeRingsSharp;
 using ThreeRingsSharp.DataHandlers;
 using ThreeRingsSharp.Utility;
@@ -20,6 +25,7 @@ using ThreeRingsSharp.XansData;
 using ThreeRingsSharp.XansData.Exceptions;
 using ThreeRingsSharp.XansData.Extensions;
 using ThreeRingsSharp.XansData.IO.GLTF;
+using ThreeRingsSharp.XansData.Structs;
 using ThreeRingsSharp.XansData.XML.ConfigReferences;
 
 namespace SKAnimatorTools {
@@ -309,8 +315,11 @@ namespace SKAnimatorTools {
 			OpenModel.ShowDialog();
 		}
 
+        public FileInfo LastFile;
+
 		private void OnFileSelectedOpenModel(object sender, CancelEventArgs e) {
 			FileInfo file = new FileInfo(OpenModel.FileName);
+			LastFile = new FileInfo(OpenModel.FileName);
 			if (!VersionInfoScraper.IsValidClydeFile(file).Item1) {
 				XanLogger.WriteLine("Can't open this file! It is not a valid Clyde file.", color: Color.DarkGoldenrod);
 				XanLogger.ForceUpdateLog();
@@ -356,8 +365,7 @@ namespace SKAnimatorTools {
 				FileInfo saveTo = new FileInfo(SaveModel.FileName);
 				ConfigurationInterface.SetConfigurationValue("LastSaveDirectory", saveTo.DirectoryName);
 				ModelFormat targetFmt = ModelFormatUtil.ExtensionToFormatBindings[saveTo.Extension];
-
-				try {
+                try {
 					Model3D.ExportIntoOne(saveTo, targetFmt, AllModels.ToArray());
 					XanLogger.WriteLine($"Done! Exported to [{saveTo.FullName}]");
 				} catch (Exception ex) {
@@ -723,5 +731,79 @@ namespace SKAnimatorTools {
 			XanLogger.ForceUpdateLog();
 			Update();
 		}
-	}
+
+        private void SceneExportButton_Click(object sender, EventArgs e) {
+            object obj = ClydeFileHandler.ClydeObjectCache[LastFile.FullName];
+            if (obj is TudeySceneModel) {
+                TudeySceneModel scene = (TudeySceneModel) obj;
+				ExportedScene exportedScene = new ExportedScene();
+                exportedScene.name = Path.GetFileName(LastFile.FullName);
+                List<ExportedScene.ExportedSceneObject> sceneObjs = new List<ExportedScene.ExportedSceneObject>();
+                object[] entries = scene.getEntries().toArray();
+                foreach (TudeySceneModel.Entry entry in entries) {
+                    if (entry is TudeySceneModel.TileEntry) {
+                        TudeySceneModel.TileEntry tile = (TudeySceneModel.TileEntry) entry;
+                        TileConfig[] tileCfgs = ConfigReferenceBootstrapper.ConfigReferences["tile"].OfType<TileConfig>().ToArray();
+                        TileConfig tileCfg = tileCfgs.GetEntryByName(tile.tile.getName());
+                        TileConfig.Original originalImpl;
+                        do
+                        {
+                            if (tileCfg == null)
+                                return;
+                            if (tileCfg.getConfigManager() != null)
+                            {
+                                originalImpl = tileCfg.getOriginal(tileCfg.getConfigManager());
+                                break;
+                            }
+                            else
+                            {
+                                if (tileCfg.implementation is TileConfig.Original original)
+                                {
+                                    originalImpl = original;
+                                    break;
+                                }
+                                else if (tileCfg.implementation is TileConfig.Derived derived)
+                                {
+                                    tileCfg = tileCfgs.GetEntryByName(derived.tile.getName());
+                                }
+                                else
+                                {
+                                    originalImpl = null;
+                                    break;
+                                }
+                            }
+                        } while (true);
+                        Transform3D trans = new Transform3D();
+                        tile.getTransform(originalImpl, trans);
+                        Vector3 pos = trans.getTranslation();
+                        Vector3 rot = trans.getRotation().toAngles();
+                        float _scale = trans.getScale();
+                        Vector3 scale = new Vector3(_scale, _scale, _scale);
+						sceneObjs.Add(new ExportedScene.ExportedSceneObject() {
+							name = tile.tile.getName(),
+							position = pos,
+							rotation = rot,
+							scale = scale
+                        });
+                    }
+				}
+				exportedScene.objects = sceneObjs.ToArray();
+                SaveFileDialog sfd = new SaveFileDialog();
+                sfd.RestoreDirectory = true;
+                sfd.InitialDirectory = UserConfiguration.LastSaveDirectory;
+                sfd.FileName = exportedScene.name;
+                sfd.Filter = "JSON|*.json";
+                DialogResult result = sfd.ShowDialog();
+                if (result == DialogResult.OK)
+                {
+                    UserConfiguration.LastSaveDirectory = Path.GetDirectoryName(sfd.FileName);
+                    File.WriteAllText(sfd.FileName, JsonConvert.SerializeObject(exportedScene));
+                }
+				XanLogger.WriteLine("Saved scene " + LastFile.Name + " to " + sfd.FileName);
+			}
+			else {
+                MessageBox.Show("Invalid File", "This isn't a TudeyScene!");
+            }
+        }
+    }
 }
