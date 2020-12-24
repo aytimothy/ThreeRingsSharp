@@ -1,3 +1,9 @@
+# aytimothy/ThreeRingsSharp
+
+This repository contains additional changes and code that I've used for porting Spiral Knights into Unity. Stuff may or may not be broken and be hacky.
+
+All additional code by me are also (derived) licensed under MIT.
+
 # ThreeRingsSharp
 Abbreviated as TRS, this is port of Grey Havens's *Clyde*, *Narya*, *Nenya*, and *Vilya* libraries (as well as their dependencies) into C# via IKVM, because let's face it: Java is kinda stupid.
 
