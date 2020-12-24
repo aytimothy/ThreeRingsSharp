@@ -5,6 +5,7 @@ namespace ThreeRingsSharp.XansData.Structs {
 	/// Stores two <see langword="float"/> values that represent a coordinate in 3D space.<para/>
 	/// Unlike <see cref="System.Numerics.Vector2"/>, this does not contain any vector math methods. This is strictly for data storage.
 	/// </summary>
+    [Serializable]
 	public struct Vector2 : IEquatable<Vector2>, ICloneable<Vector2> {
 
 		/// <summary>

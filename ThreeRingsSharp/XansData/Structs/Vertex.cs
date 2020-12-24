@@ -5,6 +5,7 @@ namespace ThreeRingsSharp.XansData.Structs {
 	/// <summary>
 	/// Represents a vertex, which contains a <see cref="Vector3"/> Point, a <see cref="float"/> Weight, a <see cref="Vector3"/> Normal, and a <see cref="Vector2"/> UV coordinate.
 	/// </summary>
+    [Serializable]
 	public struct Vertex : IEquatable<Vertex>, ICloneable<Vertex> {
 
 		/// <summary>

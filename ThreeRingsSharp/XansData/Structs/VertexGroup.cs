@@ -8,6 +8,7 @@ namespace ThreeRingsSharp.XansData.Structs {
 	/// <summary>
 	/// Represents a vertex group, which is used for rigged models. All stored vertices simply represent a vertex that has a weight in a given bone group. As such, if a vertex has a weight value less than 1, it will be a duplicate of at least one other vertex in one other vertex group.
 	/// </summary>
+    [Serializable]
 	public class VertexGroup : ICloneable<VertexGroup> {
 
 		/// <summary>
